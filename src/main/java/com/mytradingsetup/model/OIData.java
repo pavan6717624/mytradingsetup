@@ -11,6 +11,10 @@ public class OIData {
 	
 	List<Double> putoi, calloi, price, putchoi,callchoi;
 	List<String> date;
+	public OIData()
+	{
+		
+	}
 	
 	public OIData(List<MapData> mdata)
 	{

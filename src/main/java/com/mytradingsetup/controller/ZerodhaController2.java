@@ -20,8 +20,8 @@ import com.mytradingsetup.model.ZOIData;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(value = "ZERODHA")
-public class ZerodhaController {
+@RequestMapping(value = "ZERODHA1")
+public class ZerodhaController2 {
 
 	@RequestMapping(value = "demo")
 	public String demo() {
@@ -33,20 +33,14 @@ public class ZerodhaController {
 	static HttpHeaders headers = new HttpHeaders();
 	static HttpEntity<String> entity = null;
 	static List<String> instruments = null;
-	static String token="zILk8NPMFMZBVSQbbuvQzhyFdJA5tgxON74JGTwbA68dstQAWSG5aZWl/s564gfejGhz7aoygnTYmx4AEKCw4R9d9bCRDzXstx/KCNWP4V6jZJsKpwNPFQ==";
-	static String today="2026-01-16";
-	static String expiryDate="2026-01-27";
-	static String stock="\"ICICIBANK\"";
-	static int range=10;
+
 	{
-		headers.set("Authorization","enctoken "+token);
+		headers.set("Authorization","enctoken XBtkpmeWp4h/jW58vvVM4EmvrYmMaCjlK+X9uIRBzu+SZXvgmMESwiRj6FHipVaznnUZRr9HxC9xlCrwMm9w+qDfPWitdol7A6mftYh5kzZQSqv2shufMA==");
 		headers.set("User-Agent",
 				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 		entity = new HttpEntity<String>(headers);
 		instruments = getInstruments();
 	}
-	
-	
 
 
 
@@ -63,20 +57,10 @@ public class ZerodhaController {
 	public List<ZOIData> getData(@RequestParam("instrument") String instrument) {
 		String call[] = { "CE", "PE" };
 		Double lastPrice = getLastPrice(instrument);
-		
-		System.out.println(lastPrice);
-//		
-//		if(1==1)
-//			return null;
-//		
-		int candlesSize = 400;
+		int candlesSize = 300;
 		System.out.println(lastPrice);
 		List<String> mapids = getCEPE(lastPrice);
 		System.out.println(mapids);
-		
-		
-		
-		
 		List<ZOIData> OIDataList = new ArrayList<>();
 
 		for (int j = 0; j < mapids.size(); j++) {
@@ -92,7 +76,7 @@ public class ZerodhaController {
 
 				String output = template.exchange(
 						"https://kite.zerodha.com/oms/instruments/historical/" + oiData.getInstrument()
-								+ "/minute?user_id=IO7052&oi=1&from="+today+"&to="+today,
+								+ "/minute?user_id=IO7052&oi=1&from=2025-12-18&to=2025-12-18",
 						HttpMethod.GET, entity, String.class).getBody();
 
 				// System.out.println(output);
@@ -109,9 +93,7 @@ public class ZerodhaController {
 				List<ZData> data = new ArrayList<>();
 
 				for (int i = startFrom; i < candles.length; i++) {
-					
-					try
-					{
+
 					String date1;
 					Double open1, high1, close1, low1, volume1, oi1;
 					date1 = candles[i].split(",")[0];
@@ -122,18 +104,13 @@ public class ZerodhaController {
 					volume1 = Double.parseDouble(candles[i].split(",")[5]);
 					oi1 = Double.parseDouble(candles[i].split(",")[6]);
 					data.add(new ZData(date1, open1, high1, low1, close1, volume1, oi1));
-					}
-					catch(Exception ex)
-					{
-						continue;
-					}
 				}
 
 				oiData.setClose(data.stream().map(o -> o.getClose()).collect(Collectors.toList()));
 				oiData.setOpen(data.stream().map(o -> o.getOpen()).collect(Collectors.toList()));
 				oiData.setHigh(data.stream().map(o -> o.getHigh()).collect(Collectors.toList()));
 				oiData.setLow(data.stream().map(o -> o.getLow()).collect(Collectors.toList()));
-				oiData.setOi(data.stream().map(o -> (o.getOi())).collect(Collectors.toList()));
+				oiData.setOi(data.stream().map(o -> (o.getOi()/25)).collect(Collectors.toList()));
 				oiData.setVol(data.stream().map(o -> o.getVolume()).collect(Collectors.toList()));
 				oiData.setDate(data.stream().map(o -> o.getDate().replaceAll("\"", "").substring(11, 19))
 						.collect(Collectors.toList()));
@@ -147,21 +124,12 @@ public class ZerodhaController {
 				.collect(Collectors.toList());
 		List<ZOIData> PEOIDataList = OIDataList.stream().filter(o -> o.getCall().equals("PE"))
 				.collect(Collectors.toList());
-		
-		System.out.println(CEOIDataList);
 
 		List<Double> ceSumOis = new ArrayList<>();
 		for (int i = 0; i < candlesSize; i++) {
 			Double sumOi = 0d;
 			for (int j = 0; j < CEOIDataList.size(); j++) {
-				try
-				{
 				sumOi += CEOIDataList.get(j).getOi().get(i);
-				}
-				catch(Exception ex)
-				{
-					
-				}
 			}
 
 			ceSumOis.add(sumOi);
@@ -172,14 +140,7 @@ public class ZerodhaController {
 		for (int i = 0; i < candlesSize; i++) {
 			Double sumOi = 0d;
 			for (int j = 0; j < PEOIDataList.size(); j++) {
-				try
-				{
 				sumOi += PEOIDataList.get(j).getOi().get(i);
-				}
-				catch(Exception ex)
-				{
-					
-				}
 			}
 
 			peSumOis.add(sumOi);
@@ -208,7 +169,7 @@ public class ZerodhaController {
 
 		String output = template.exchange(
 				"https://kite.zerodha.com/oms/instruments/historical/" + instrument
-						+ "/day?user_id=IO7052&oi=1&from=2024-09-01&to=2024-11-07",
+						+ "/day?user_id=IO7052&oi=1&from=2025-12-17&to=2025-12-17",
 				HttpMethod.GET, entity, String.class).getBody();
 
 		// System.out.println(output);
@@ -242,7 +203,7 @@ public class ZerodhaController {
 		oiData.setOpen(data.stream().map(o -> o.getOpen()).collect(Collectors.toList()));
 		oiData.setHigh(data.stream().map(o -> o.getHigh()).collect(Collectors.toList()));
 		oiData.setLow(data.stream().map(o -> o.getLow()).collect(Collectors.toList()));
-		oiData.setOi(data.stream().map(o -> (o.getOi()/20)).collect(Collectors.toList()));
+		oiData.setOi(data.stream().map(o -> (o.getOi()/25)).collect(Collectors.toList()));
 		oiData.setVol(data.stream().map(o -> o.getVolume()).collect(Collectors.toList()));
 		oiData.setDate(data.stream().map(o -> o.getDate()).collect(Collectors.toList()));
 
@@ -254,7 +215,7 @@ public class ZerodhaController {
 
 		String output = template.exchange(
 				"https://kite.zerodha.com/oms/instruments/historical/" + instrument
-						+ "/minute?user_id=IO7052&oi=1&from="+today+"&to="+today,
+						+ "/minute?user_id=IO7052&oi=1&from=2025-12-17&to=2025-12-17",
 				HttpMethod.GET, entity, String.class).getBody();
 
 		System.out.println(output);
@@ -269,36 +230,31 @@ public class ZerodhaController {
 	@RequestMapping(value = "getCEPE")
 	public List<String> getCEPE(@RequestParam("lastPrice") Double lastPrice) {
 
-		Long price = Math.round(lastPrice / range) * range;
+		Long price = Math.round(lastPrice / 100) * 100;
 
 		List<Long> prices = new ArrayList<>();
 		List<String> data = new ArrayList<>();
 
 		for (int i = 0; i < 6; i++) {
-			Long p = price - i * range;
+			Long p = price - i * 100;
 			prices.add(p);
 		}
 
 		for (int i = 0; i < 6; i++) {
-			Long p = price + i * range;
+			Long p = price + i * 100;
 			prices.add(p);
 		}
 
 		prices = prices.stream().distinct().sorted().collect(Collectors.toList());
-		
-//		System.out.println("instruments" + instruments);
 
 		for (int i = 0; i < prices.size(); i++) {
 			String pricestr = prices.get(i) + "";
-			
-
-			
 			String CE = (instruments.stream()
-					.filter(o -> o.indexOf(stock) != -1 && o.indexOf(expiryDate) != -1
+					.filter(o -> o.indexOf("\"SENSEX\"") != -1 && o.indexOf("2025-12-18") != -1
 							&& o.indexOf(pricestr) != -1 && o.indexOf("CE") != -1)
 					.collect(Collectors.toList()).get(0)).split(",")[0];
 			String PE = (instruments.stream()
-					.filter(o -> o.indexOf(stock) != -1 && o.indexOf(expiryDate) != -1
+					.filter(o -> o.indexOf("\"SENSEX\"") != -1 && o.indexOf("2025-12-18") != -1
 							&& o.indexOf(pricestr) != -1 && o.indexOf("PE") != -1)
 					.collect(Collectors.toList()).get(0)).split(",")[0];
 

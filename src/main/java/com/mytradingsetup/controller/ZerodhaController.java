@@ -33,11 +33,11 @@ public class ZerodhaController {
 	static HttpHeaders headers = new HttpHeaders();
 	static HttpEntity<String> entity = null;
 	static List<String> instruments = null;
-	static String token="zILk8NPMFMZBVSQbbuvQzhyFdJA5tgxON74JGTwbA68dstQAWSG5aZWl/s564gfejGhz7aoygnTYmx4AEKCw4R9d9bCRDzXstx/KCNWP4V6jZJsKpwNPFQ==";
-	static String today="2026-01-16";
+	static String token="VP3IccT7shIcOIOylc5t4hqzFn8Xbkl0yoOKQv1vWOYaTgnWK4XeN6Mr3osC5jdVyQwu5+H8DGWA5j70Iw99VNEs0o2AuR01LjgdeW0keGKEZnqH94AgIg==";
+	static String today="2026-01-22";
 	static String expiryDate="2026-01-27";
-	static String stock="\"ICICIBANK\"";
-	static int range=10;
+	static String stock="\"SENSEX\"";
+	static int range=100;
 	{
 		headers.set("Authorization","enctoken "+token);
 		headers.set("User-Agent",
@@ -62,6 +62,39 @@ public class ZerodhaController {
 	@RequestMapping(value = "getData")
 	public List<ZOIData> getData(@RequestParam("instrument") String instrument) {
 		String call[] = { "CE", "PE" };
+		
+		  //NIFTY = 256265
+		  //SENSEX = 265
+		 
+
+		  //RELIANCE=738561
+		  //HDFCBANK=341249
+		  //ICICIBANK=1270529
+		  //SBIN = 779521
+		  //INFY = 408065
+	
+		if(instrument.equals("256265"))
+		{
+			range=50;
+			stock="NIFTY";
+			expiryDate="2026-01-27";
+			System.out.println("range is "+range);
+		}
+		else if(instrument.equals("265"))
+		{
+			range=100;
+			stock="SENSEX";
+			expiryDate="2026-01-22";
+			System.out.println("range is "+range);
+		}
+		else if(instrument.equals("779521"))
+		{
+			range=10;
+			stock="SBI";
+			expiryDate="2026-01-27";
+			System.out.println("range is "+range);
+		}
+		
 		Double lastPrice = getLastPrice(instrument);
 		
 		System.out.println(lastPrice);
@@ -291,7 +324,7 @@ public class ZerodhaController {
 		for (int i = 0; i < prices.size(); i++) {
 			String pricestr = prices.get(i) + "";
 			
-
+System.out.println("Stock is "+ stock+" expiryDate is "+ expiryDate);
 			
 			String CE = (instruments.stream()
 					.filter(o -> o.indexOf(stock) != -1 && o.indexOf(expiryDate) != -1
